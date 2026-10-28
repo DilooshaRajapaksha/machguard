@@ -2,14 +2,16 @@ from typing import List
 
 from fastapi import FastAPI, HTTPException
 
-from . import codes
+from . import codes, simulator
 from .schemas import FaultCard
 
 app = FastAPI(
     title="MachGuard API",
     description="Fault guidance and early warning for Kaeser Sigma Control 2 compressors",
-    version="0.2.0",
+    version="0.3.0",
 )
+
+app.include_router(simulator.router)
 
 
 @app.get("/")
