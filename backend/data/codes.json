@@ -1,0 +1,121 @@
+[
+  {
+    "code": "SAMPLE-01",
+    "title": "Discharge temperature too high",
+    "meaning": "The compressed air leaving the machine is hotter than normal. Heat is the most common early sign of a struggling compressor.",
+    "likely_causes": [
+      "Oil level is low",
+      "Cooler fins are blocked with dust or dirt",
+      "Cooling fan is slow or stopped",
+      "Room is too hot or has poor air flow"
+    ],
+    "fix_steps": [
+      "Stop the compressor and let it cool down.",
+      "Isolate the power and release the air pressure before opening any panel.",
+      "Check the oil level and top up if it is low.",
+      "Clean the cooler fins and the air inlet.",
+      "Check that the cooling fan turns freely.",
+      "Restart and watch the temperature for 15 minutes."
+    ],
+    "urgency": "stop",
+    "safety_note": "Hot surfaces and stored pressure can injure. Only a trained person should open the machine.",
+    "is_sample": true
+  },
+  {
+    "code": "SAMPLE-02",
+    "title": "Oil level or oil pressure low",
+    "meaning": "There may not be enough oil to protect the moving parts. Running like this can wreck the compressor block.",
+    "likely_causes": [
+      "Oil has leaked or been used up",
+      "Oil filter is clogged",
+      "Oil pump or valve fault"
+    ],
+    "fix_steps": [
+      "Stop the compressor straight away.",
+      "Isolate the power and release the air pressure.",
+      "Check the oil level and look for leaks around the pipes and filter.",
+      "Top up with the oil type the manufacturer specifies.",
+      "If the level is fine, replace the oil filter and call a service engineer."
+    ],
+    "urgency": "stop",
+    "safety_note": "Do not restart until the oil problem is understood.",
+    "is_sample": true
+  },
+  {
+    "code": "SAMPLE-03",
+    "title": "Motor current too high",
+    "meaning": "The motor is pulling more electricity than normal. The machine is working too hard or something is dragging.",
+    "likely_causes": [
+      "Air filter or separator is blocked",
+      "Worn bearings",
+      "Supply voltage problem",
+      "Machine is overloaded by air demand"
+    ],
+    "fix_steps": [
+      "Check whether air demand has risen suddenly.",
+      "Inspect the air filter and separator and clean or replace them.",
+      "Listen and feel for rough or noisy bearings.",
+      "Ask an electrician to check the supply voltage.",
+      "Call a service engineer if the current stays high."
+    ],
+    "urgency": "warning",
+    "safety_note": "Only a qualified electrician should work on the electrical supply.",
+    "is_sample": true
+  },
+  {
+    "code": "SAMPLE-04",
+    "title": "Air filter needs service",
+    "meaning": "The air filter is getting clogged, so the machine has to work harder to breathe in.",
+    "likely_causes": [
+      "Dusty room",
+      "Filter is past its service interval"
+    ],
+    "fix_steps": [
+      "Plan the filter change for the next convenient stop.",
+      "Isolate the power and release the air pressure.",
+      "Replace the filter with the correct part.",
+      "Reset the service counter after the job."
+    ],
+    "urgency": "info",
+    "safety_note": null,
+    "is_sample": true
+  },
+  {
+    "code": "SAMPLE-05",
+    "title": "Vibration higher than normal",
+    "meaning": "The machine is shaking more than it did when healthy. This often shows up days before a bearing or mounting problem causes a fault code.",
+    "likely_causes": [
+      "Worn bearings",
+      "Loose mounting bolts",
+      "Shaft or coupling misalignment"
+    ],
+    "fix_steps": [
+      "Note the time and load when it started.",
+      "Check that the mounting bolts and guards are tight.",
+      "Listen for grinding or squealing near the motor and the compressor block.",
+      "Book a bearing inspection before the next scheduled shutdown."
+    ],
+    "urgency": "warning",
+    "safety_note": "Keep hands and clothing away from moving parts while checking.",
+    "is_sample": true
+  },
+  {
+    "code": "SAMPLE-06",
+    "title": "Humidity and rust risk high",
+    "meaning": "Salty, damp air around the machine raises the risk of corrosion on electrical parts and the cooler.",
+    "likely_causes": [
+      "Humid sea air",
+      "Poor ventilation or a gap in the enclosure",
+      "Condensation on cold surfaces"
+    ],
+    "fix_steps": [
+      "Check that panel doors and seals close properly.",
+      "Wipe away any moisture or salt deposits.",
+      "Improve ventilation or add a dehumidifier if it keeps happening.",
+      "Inspect electrical terminals for rust at the next service."
+    ],
+    "urgency": "info",
+    "safety_note": null,
+    "is_sample": true
+  }
+]
