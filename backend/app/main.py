@@ -2,13 +2,14 @@ from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from . import codes, db, simulator
+
+from . import ai, codes, db, simulator
 from .schemas import FaultCard, Reading
 
 app = FastAPI(
     title="MachGuard API",
     description="Fault guidance and early warning for Kaeser Sigma Control 2 compressors",
-    version="0.4.0",
+    version="0.5.0",
 )
 
 db.init_db()
@@ -78,8 +79,22 @@ def load_story(
     scenario: simulator.Scenario = simulator.Scenario.HEALTHY,
     steps: int = Query(120, ge=1, le=2000),
     seed: int = 42,
+    fraction: float = Query(1.0, gt=0, le=1),
 ):
-    """Act out a story AND write all its readings into the diary."""
-    for r in simulator.generate(scenario, steps=steps, seed=seed):
+    """Act out a story AND write its readings into the diary. Use fraction to stop partway."""
+    readings = simulator.generate(scenario, steps=steps, seed=seed)
+    keep = readings[: max(1, int(steps * fraction))]
+    for r in keep:
         db.save_reading(r)
-    return {"saved": steps, "scenario": scenario.value}
+    return {"saved": len(keep), "scenario": scenario.value}
+
+
+@app.get("/analysis")
+def analysis(machine_id: str = "compressor-1", window: int = Query(30, ge=8, le=500)):
+    """Ask the AI how the machine looks right now."""
+    rows = list(reversed(db.latest_readings(machine_id, window)))
+    readings = [Reading(**row) for row in rows]
+    result = ai.analyse(readings)
+    result["machine_id"] = machine_id
+    result["readings_used"] = len(readings)
+    return result

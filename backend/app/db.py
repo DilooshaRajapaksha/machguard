@@ -1,9 +1,8 @@
 import os
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 from typing import List, Optional
-from contextlib import contextmanager
-
 from .schemas import Reading
 
 # The diary file. Tests can point somewhere else with MACHGUARD_DB.
