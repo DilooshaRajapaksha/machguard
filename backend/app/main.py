@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import ai, codes, db, simulator
+from . import admin_routes, ai, auth_routes, codes, db, simulator
 from .schemas import FaultCard, Reading
 
 app = FastAPI(
@@ -22,7 +22,8 @@ app.add_middleware(
 )
 
 app.include_router(simulator.router)
-
+app.include_router(auth_routes.router)
+app.include_router(admin_routes.router)
 
 @app.get("/")
 def home():
@@ -98,3 +99,10 @@ def analysis(machine_id: str = "compressor-1", window: int = Query(30, ge=8, le=
     result["machine_id"] = machine_id
     result["readings_used"] = len(readings)
     return result
+
+
+@app.post("/simulator/reset")
+def reset_diary():
+    """Empty the diary so a demo can start from a clean page."""
+    db.clear_all()
+    return {"cleared": True}

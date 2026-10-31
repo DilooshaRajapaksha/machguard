@@ -33,6 +33,30 @@ CREATE TABLE IF NOT EXISTS fault_events (
     timestamp   TEXT NOT NULL,
     fault_code  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    username              TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    full_name             TEXT NOT NULL,
+    password_hash         TEXT NOT NULL,
+    role                  TEXT NOT NULL CHECK (role IN ('admin', 'viewer')),
+    is_active             INTEGER NOT NULL DEFAULT 1,
+    must_change_password  INTEGER NOT NULL DEFAULT 1,
+    token_version         INTEGER NOT NULL DEFAULT 0,
+    failed_attempts       INTEGER NOT NULL DEFAULT 0,
+    locked_until          TEXT,
+    created_at            TEXT NOT NULL,
+    last_login            TEXT
+);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp  TEXT NOT NULL,
+    actor      TEXT NOT NULL,
+    action     TEXT NOT NULL,
+    target     TEXT,
+    detail     TEXT
+);
 """
 
 
