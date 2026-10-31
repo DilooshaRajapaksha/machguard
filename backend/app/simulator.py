@@ -64,6 +64,7 @@ def generate(
     rng = random.Random(seed)          # same seed = same story every time
     start = start or datetime.now()
     readings = []
+    latched = None                     # a real controller keeps a fault until someone resets it
 
     for i in range(steps):
         p = i / max(steps - 1, 1)      # progress through the story: 0.0 to 1.0
@@ -95,6 +96,8 @@ def generate(
         humidity = round(min(max(v["humidity"], 0), 100), 2)
         pressure = round(min(max(v["pressure"], 0), 20), 2)
 
+        latched = latched or _fault_code(temp, current, vibration, humidity)
+
         readings.append(Reading(
             machine_id=machine_id,
             timestamp=start + timedelta(seconds=i * interval_s),
@@ -104,7 +107,7 @@ def generate(
             motor_current_a=current,
             vibration_rms=vibration,
             humidity_pct=humidity,
-            fault_code=_fault_code(temp, current, vibration, humidity),
+            fault_code=latched,
         ))
     return readings
 
