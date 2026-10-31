@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
-
+from fastapi.middleware.cors import CORSMiddleware
 from . import codes, db, simulator
 from .schemas import FaultCard, Reading
 
@@ -11,7 +11,14 @@ app = FastAPI(
     version="0.4.0",
 )
 
-db.init_db()   # make sure the diary exists when the app starts
+db.init_db()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(simulator.router)
 

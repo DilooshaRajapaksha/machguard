@@ -2,6 +2,7 @@ import os
 import sqlite3
 from pathlib import Path
 from typing import List, Optional
+from contextlib import contextmanager
 
 from .schemas import Reading
 
@@ -36,11 +37,16 @@ CREATE TABLE IF NOT EXISTS fault_events (
 """
 
 
-def connect() -> sqlite3.Connection:
+@contextmanager
+def connect():
     DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row   # rows behave like dictionaries
-    return conn
+    conn.row_factory = sqlite3.Row
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
 def init_db() -> None:
