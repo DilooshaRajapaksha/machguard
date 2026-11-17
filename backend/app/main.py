@@ -1,3 +1,7 @@
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from . import registry_routes
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -13,6 +17,7 @@ app = FastAPI(
 )
 
 db.init_db()
+registry_routes.init_registry()
 
 app.add_middleware(
     CORSMiddleware,
@@ -106,3 +111,13 @@ def reset_diary():
     """Empty the diary so a demo can start from a clean page."""
     db.clear_all()
     return {"cleared": True}
+
+app.include_router(registry_routes.router)
+
+ADMIN_FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "admin-dashbord"
+app.mount("/panel-static", StaticFiles(directory=str(ADMIN_FRONTEND_DIR)), name="panel-static")
+
+
+@app.get("/panel", include_in_schema=False)
+def admin_panel():
+    return FileResponse(ADMIN_FRONTEND_DIR / "index.html")
