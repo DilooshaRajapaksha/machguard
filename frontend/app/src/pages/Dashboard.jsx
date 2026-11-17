@@ -1,7 +1,7 @@
 import { Activity, CircleCheck, CircleStop, TriangleAlert } from 'lucide-react'
 import CategoryCard from '../components/machines/CategoryCard'
 import { categories, countByStatus, machines } from '../data/machines'
-import { currentUser } from '../data/user'
+import { useAuth } from '../context/AuthContext'
 import { companyName } from '../config'
 
 function getGreeting() {
@@ -12,7 +12,9 @@ function getGreeting() {
 }
 
 function Dashboard() {
-  const firstName = currentUser.name.split(' ')[0]
+  const { user } = useAuth()
+  const displayName = user?.full_name?.trim() || user?.username || 'User'
+  const firstName = displayName.split(/\s+/)[0]
   const counts = countByStatus(machines)
 
   const stats = [
