@@ -1,4 +1,5 @@
 import { Activity, CircleCheck, CircleStop, TriangleAlert } from 'lucide-react'
+import BenchReadings from '../components/BenchReadings'
 import CategoryCard from '../components/machines/CategoryCard'
 import { categories, countByStatus, machines } from '../data/machines'
 import { useAuth } from '../context/AuthContext'
@@ -26,24 +27,23 @@ function Dashboard() {
 
   return (
     <div className="space-y-10">
-      <section className="relative overflow-hidden rounded-3xl bg-navy-900 px-6 py-8 text-white sm:px-10 sm:py-10">
-        <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-teal-400/20 blur-3xl" />
-        <div className="absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-sky-500/10 blur-3xl" />
-        <div className="relative">
-          <p className="text-sm font-medium text-teal-300">
+      <section className="border-b border-slate-200 pb-7">
+        <div>
+          <p className="text-sm font-medium text-slate-500">
             {getGreeting()}, {firstName}
           </p>
-          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Dockyard maintenance guidance</h1>
-          <p className="mt-3 max-w-2xl text-slate-300">
-            This is the {companyName} maintenance guidance prototype. Pick a machine type below to check
-            the status of each unit.
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Maintenance overview</h1>
+          <p className="mt-3 max-w-2xl text-sm text-slate-500">
+            {companyName} · Demonstration machine directory. Counts below are sample statuses, not live readings.
           </p>
         </div>
       </section>
 
+      <BenchReadings />
+
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+          <div key={label} className="rounded-md border border-slate-200 bg-white p-5">
             <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
               <Icon size={20} />
             </span>
