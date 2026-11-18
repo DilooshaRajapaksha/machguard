@@ -8,7 +8,7 @@ const links = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/machines', label: 'Machines', icon: Cog },
   { to: '/support', label: 'Support', icon: LifeBuoy },
-  { to: '/assistant', label: 'AI', icon: Bot },
+  { to: '/assistant', label: 'Assistant', icon: Bot },
 ]
 
 function linkClass({ isActive }) {
