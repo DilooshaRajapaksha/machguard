@@ -2,6 +2,8 @@ from pathlib import Path
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from . import registry_routes
+from . import notification_routes
+from .notification_service import init_notification_service
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
@@ -17,6 +19,7 @@ app = FastAPI(
 )
 
 db.init_db()
+init_notification_service()
 registry_routes.init_registry()
 
 app.add_middleware(
@@ -29,6 +32,7 @@ app.add_middleware(
 app.include_router(simulator.router)
 app.include_router(auth_routes.router)
 app.include_router(admin_routes.router)
+app.include_router(notification_routes.router)
 
 @app.get("/")
 def home():
