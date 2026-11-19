@@ -27,7 +27,7 @@ def status():
 @router.get("/machines")
 def machines():
     with db.connect() as conn:
-        return [row[0] for row in conn.execute("SELECT DISTINCT machine_id FROM readings ORDER BY machine_id LIMIT 200")]
+        return [row[0] for row in conn.execute("SELECT DISTINCT machine_id FROM demo_samples ORDER BY machine_id LIMIT 200")]
 
 
 @router.get("/conversations")

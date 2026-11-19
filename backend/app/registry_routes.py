@@ -5,7 +5,7 @@ from typing import Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import db, security, users
+from . import db, security, users, machine_records
 
 router = APIRouter(prefix="/admin/registry", tags=["machine registry"],
                    dependencies=[Depends(security.require_admin)])
@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS maintenance_reports (
 
 
 def init_registry():
+    machine_records.init()
     with db.connect() as conn:
         conn.executescript(TABLES)
 

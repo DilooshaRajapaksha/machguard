@@ -7,7 +7,8 @@ from .chat_service import init_chat
 from .notification_service import init_notification_service
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from . import demo_store, security
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import admin_routes, ai, auth_routes, codes, db, simulator
@@ -20,6 +21,7 @@ app = FastAPI(
 )
 
 db.init_db()
+demo_store.init()
 init_notification_service()
 init_chat()
 bench.init_bench()
@@ -32,7 +34,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(simulator.router)
+admin_only = [Depends(security.require_admin)]
+app.include_router(simulator.router, dependencies=admin_only)
 app.include_router(auth_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(notification_routes.router)
@@ -64,14 +67,14 @@ def one_code(code: str):
     return card
 
 
-@app.post("/readings")
+@app.post("/readings", dependencies=admin_only)
 def add_reading(reading: Reading):
     """The machine (or the simulator) hands us one reading. We write it in the diary."""
     new_id = db.save_reading(reading)
     return {"saved": True, "id": new_id}
 
 
-@app.get("/readings")
+@app.get("/readings", dependencies=admin_only)
 def get_readings(
     machine_id: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -80,7 +83,7 @@ def get_readings(
     return db.latest_readings(machine_id, limit)
 
 
-@app.get("/faults")
+@app.get("/faults", dependencies=admin_only)
 def get_faults(
     machine_id: Optional[str] = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -89,7 +92,7 @@ def get_faults(
     return db.fault_events(machine_id, limit)
 
 
-@app.post("/simulator/load")
+@app.post("/simulator/load", dependencies=admin_only)
 def load_story(
     scenario: simulator.Scenario = simulator.Scenario.HEALTHY,
     steps: int = Query(120, ge=1, le=2000),
@@ -99,12 +102,16 @@ def load_story(
     """Act out a story AND write its readings into the diary. Use fraction to stop partway."""
     readings = simulator.generate(scenario, steps=steps, seed=seed)
     keep = readings[: max(1, int(steps * fraction))]
-    for r in keep:
-        db.save_reading(r)
+    demo_store.save(keep)
     return {"saved": len(keep), "scenario": scenario.value}
 
 
-@app.get("/analysis")
+@app.get("/simulator/analysis", dependencies=admin_only)
+def demo_analysis(machine_id: str = "compressor-1"):
+    return {**ai.analyse(demo_store.latest(machine_id, 30)), "source": "simulated"}
+
+
+@app.get("/analysis", dependencies=[Depends(security.current_user)])
 def analysis(machine_id: str = "compressor-1", window: int = Query(30, ge=8, le=500)):
     """Ask the AI how the machine looks right now."""
     rows = list(reversed(db.latest_readings(machine_id, window)))
@@ -115,14 +122,15 @@ def analysis(machine_id: str = "compressor-1", window: int = Query(30, ge=8, le=
     return result
 
 
-@app.post("/simulator/reset")
+@app.post("/simulator/reset", dependencies=admin_only)
 def reset_diary():
     """Empty the diary so a demo can start from a clean page."""
-    db.clear_all()
+    demo_store.reset()
     return {"cleared": True}
 
 app.include_router(registry_routes.router)
 app.include_router(registry_routes.engineer_router)
+app.include_router(registry_routes.machine_records.router)
 
 @app.get("/panel", include_in_schema=False)
 def admin_panel():
