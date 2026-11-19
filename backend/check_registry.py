@@ -80,9 +80,10 @@ class RegistryTests(unittest.TestCase):
         body["status"] = "Unknown"
         self.assertEqual(self.post("/machines",body).status_code,422)
 
-    def test_panel_assets(self):
-        for path in ("/panel","/panel-static/styles.css","/panel-static/app.js"):
-            self.assertEqual(self.client.get(path).status_code,200)
+    def test_panel_redirect(self):
+        response = self.client.get("/panel", follow_redirects=False)
+        self.assertEqual(response.status_code, 307)
+        self.assertEqual(response.headers["location"], "http://localhost:5173/admin")
 
 if __name__ == "__main__":
     try:

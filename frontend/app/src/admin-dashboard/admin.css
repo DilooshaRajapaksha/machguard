@@ -1,0 +1,20 @@
+.mg-admin header,.mg-admin nav,.mg-admin fieldset {display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.mg-admin header {background:#0b1f33;color:white;padding:1rem max(5vw,1rem)}
+.mg-admin header strong {margin-right:auto}
+.mg-admin main {max-width:72rem;margin:auto;padding:1.5rem}
+.mg-admin nav {border-bottom:1px solid #cbd5e1;padding-bottom:1rem}
+.mg-admin nav .active {color:#075e58;font-weight:700}
+.mg-admin nav button {margin-left:auto}
+.mg-admin h1 {font-size:1.8rem;font-weight:700;margin:1.3rem 0}
+.mg-admin h2,.mg-admin h3 {font-weight:650;margin-bottom:.5rem}
+.mg-admin form,.mg-admin section {background:white;border:1px solid #d7e1e6;border-radius:.65rem;padding:1.2rem;margin-bottom:1rem}
+.mg-admin fieldset {align-items:end}
+.mg-admin label {display:grid;gap:.25rem;font-size:.9rem;flex:1 1 12rem}
+.mg-admin input,.mg-admin select,.mg-admin textarea {border:1px solid #94a3b8;border-radius:.3rem;padding:.5rem;width:100%}
+.mg-admin button {cursor:pointer;background:#105b58;color:white;border-radius:.35rem;padding:.45rem .85rem}
+.mg-admin button:disabled {opacity:.55}
+.mg-admin .metrics,.mg-admin .forms {display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr))}
+.mg-admin .metrics strong {display:block;font-size:2rem}
+.mg-admin article {border-top:1px solid #dce3e8;padding:.75rem 0}
+.mg-admin p {margin:.35rem 0}
+.mg-admin [role=alert] {color:#982525}
