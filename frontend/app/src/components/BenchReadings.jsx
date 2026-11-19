@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { apiRequest } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -37,6 +38,7 @@ export default function BenchReadings() {
   }, [token])
   return <section className="rounded-md border border-slate-200 bg-white p-5">
     <h2 className="text-xl font-semibold">ESP32 test bench</h2>
+    <Link className="text-sm text-teal-700 underline" to="/machines/test-bench/motor-1">View five-minute history</Link>
     <p className="text-sm text-slate-600">{status}</p>
     {sample && <><p className="mt-2 text-sm">Received {new Date(sample.received_at).toLocaleString()}</p>
       <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">{fields.filter(([key]) => sample.uptime_s == null || !['ax', 'ay', 'az'].includes(key)).map(([key, label, unit]) =>

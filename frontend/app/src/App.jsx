@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Machines from './pages/Machines'
+import BenchHistory from './pages/BenchHistory'
 import MachineCategory from './pages/MachineCategory'
 import Support from './pages/Support'
 import Assistant from './pages/Assistant'
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
 
             <Route path="/machines" element={<Machines />} />
+            <Route path="/machines/test-bench/motor-1" element={<BenchHistory />} />
 
             <Route
               path="/machines/:categoryId"

@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from . import registry_routes
 from . import notification_routes
 from . import chat_routes
+from . import bench
 from .chat_service import init_chat
 from .notification_service import init_notification_service
 from typing import List, Optional
@@ -23,6 +24,7 @@ app = FastAPI(
 db.init_db()
 init_notification_service()
 init_chat()
+bench.init_bench()
 registry_routes.init_registry()
 
 app.add_middleware(
@@ -37,6 +39,7 @@ app.include_router(auth_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(notification_routes.router)
 app.include_router(chat_routes.router)
+app.include_router(bench.router)
 
 @app.get("/")
 def home():

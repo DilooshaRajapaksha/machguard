@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -35,6 +35,7 @@ class BenchSample(BaseModel):
 def init_bench():
     with db.connect() as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS bench_samples (id INTEGER PRIMARY KEY, received_at TEXT NOT NULL, sample TEXT NOT NULL)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_bench_received ON bench_samples(received_at)")
 
 
 def save_sample(sample):
@@ -45,6 +46,17 @@ def save_sample(sample):
 
 
 router = APIRouter(prefix="/bench", dependencies=[Depends(security.current_user)])
+
+
+@router.get("/history")
+def history():
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
+    with db.connect() as conn:
+        rows = conn.execute(
+            "SELECT received_at, sample FROM bench_samples WHERE received_at >= ? ORDER BY received_at DESC, id DESC",
+            (cutoff,),
+        ).fetchall()
+    return [{"received_at": row["received_at"], **BenchSample.model_validate_json(row["sample"]).model_dump()} for row in rows]
 
 
 @router.get("/latest")
