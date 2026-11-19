@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS machines (
  engineer_id INTEGER REFERENCES engineers(id)
 );
 
+CREATE TABLE IF NOT EXISTS machine_devices (
+ machine_id INTEGER PRIMARY KEY REFERENCES machines(id),
+ device_id TEXT NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS maintenance_reports (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  machine_id INTEGER NOT NULL REFERENCES machines(id),
@@ -114,8 +119,9 @@ def registry():
                 ORDER BY e.name
             """)],
             "machines": [dict(r) for r in conn.execute("""
-                SELECT m.*, c.name AS category_name, e.name AS engineer_name
+                SELECT m.*, d.device_id, c.name AS category_name, e.name AS engineer_name
                 FROM machines m JOIN machine_categories c ON c.id=m.category_id
+                LEFT JOIN machine_devices d ON d.machine_id=m.id
                 LEFT JOIN engineers e ON e.id=m.engineer_id ORDER BY m.id DESC
             """)],
             "reports": [dict(r) for r in conn.execute("""
@@ -263,3 +269,19 @@ def my_engineer_profile(user: dict = Depends(security.current_user)):
         "engineer": dict(engineer),
         "machines": [dict(machine) for machine in machines],
     }
+class DeviceLink(Form):
+    device_id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")
+
+
+@router.put("/machines/{machine_id}/device")
+def link_device(machine_id: int, body: DeviceLink):
+    try:
+        with db.connect() as conn:
+            require_reference(conn, "machines", machine_id, "Machine")
+            conn.execute("""
+                INSERT INTO machine_devices(machine_id, device_id) VALUES (?, ?)
+                ON CONFLICT(machine_id) DO UPDATE SET device_id=excluded.device_id
+            """, (machine_id, body.device_id))
+    except sqlite3.IntegrityError:
+        raise HTTPException(409, "This device is assigned to another machine.")
+    return {"device_id": body.device_id}

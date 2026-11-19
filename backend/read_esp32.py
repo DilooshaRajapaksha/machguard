@@ -55,4 +55,4 @@ def samples(lines):
 if __name__ == "__main__":
     init_bench()
     for sample in samples(sys.stdin):
-        print(save_sample(sample), sample.model_dump_json(exclude_none=True), flush=True)
+        print(save_sample(sample, sys.argv[1] if len(sys.argv) > 1 else None), sample.model_dump_json(exclude_none=True), flush=True)

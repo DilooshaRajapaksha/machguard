@@ -20,6 +20,10 @@ export default function Machines() {
       <Field name="engineer_id" label="Assigned engineer (optional)" choices={engineers} required={false} defaultValue={current.engineer_id || ''} />
       {editing && <button type="button" onClick={() => setEditing(null)}>Cancel edit</button>}
     </RecordForm>
-    <section><h2>Registered machines</h2>{machines.map(m => <p key={m.id}>{m.name} · {m.machine_id} · {m.category_name} · {m.location} · {m.status} · {m.engineer_name || 'Unassigned'} <button onClick={() => setEditing(m)}>Edit</button></p>)}{!machines.length && <p>No machines registered.</p>}</section>
+    {machines.length > 0 && <RecordForm title="Assign USB device" save={body => request('/admin/registry/machines/' + body.machine + '/device', {method:'PUT', body:{device_id:body.device_id}})}>
+      <Field label="Machine" name="machine" choices={machines} />
+      <Field label="Device label" name="device_id" pattern="[A-Za-z0-9_\-]{1,64}" />
+    </RecordForm>}
+    <section><h2>Registered machines</h2>{machines.map(m => <p key={m.id}>{m.name} · {m.machine_id} · {m.category_name} · {m.location} · {m.status} · {m.device_id || 'No device'} · {m.engineer_name || 'Unassigned'} <button onClick={() => setEditing(m)}>Edit</button></p>)}{!machines.length && <p>No machines registered.</p>}</section>
   </>
 }

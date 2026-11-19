@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Port)
+param([Parameter(Mandatory)][string]$Port, [ValidatePattern("^[A-Za-z0-9_-]{1,64}$")][string]$DeviceId)
 $ErrorActionPreference = "Stop"
 $serial = [System.IO.Ports.SerialPort]::new($Port, 115200)
 $serial.ReadTimeout = 1000
@@ -8,7 +8,7 @@ try {
     $start = [System.Diagnostics.ProcessStartInfo]::new()
     $start.FileName = "$PSScriptRoot\venv\Scripts\python.exe"
     $start.WorkingDirectory = $PSScriptRoot
-    $start.Arguments = '-u read_esp32.py'
+    $start.Arguments = "-u read_esp32.py $DeviceId"
     $start.UseShellExecute = $false
     $start.RedirectStandardInput = $true
     $reader = [System.Diagnostics.Process]::Start($start)
