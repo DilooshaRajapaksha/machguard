@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from . import db, security
+from .notification_schemas import MachineWarningOut
+from .notification_service import record_warning
 
 
 class BenchSample(BaseModel):
@@ -44,7 +46,31 @@ def init_bench():
         conn.execute("CREATE INDEX IF NOT EXISTS idx_bench_received ON bench_samples(received_at)")
 
 
-def save_sample(sample, device_id=None):
+def check_temperature(conn, registry_id, stamp, limit):
+    rows = conn.execute("""
+        SELECT received_at, json_extract(sample, '$.probe_c') AS temperature
+        FROM bench_samples WHERE registry_id=? ORDER BY id DESC LIMIT 3
+    """, (registry_id,)).fetchall()
+    if len(rows) < 3 or any(r["temperature"] is None for r in rows):
+        return
+    if datetime.fromisoformat(stamp) - datetime.fromisoformat(rows[-1]["received_at"]) > timedelta(seconds=30):
+        return
+    readings = [r["temperature"] for r in rows]
+    if min(readings) >= limit:
+        status = "fault"
+    elif max(readings) < limit:
+        status = "normal"
+    else:
+        return
+    machine = conn.execute("SELECT machine_id FROM machines WHERE id=?", (registry_id,)).fetchone()
+    warning = MachineWarningOut(machine_id=machine["machine_id"], status=status, source="measured",
+                                latest_reading_at=stamp, readings_used=3,
+                                message=f"Surface probe 1 reached {readings[0]:g} C. Configured limit: {limit:g} C.",
+                                reasons=[f"Recent probe temperatures in C, newest first: {readings}"])
+    record_warning(warning, stream_id="surface-probe-1", connection=conn)
+
+
+def save_sample(sample, device_id=None, temperature_limit=None):
     stamp = datetime.now(timezone.utc).isoformat()
     with db.connect() as conn:
         conn.execute("BEGIN IMMEDIATE")
@@ -56,6 +82,8 @@ def save_sample(sample, device_id=None):
             registry_id = link["machine_id"]
         conn.execute("INSERT INTO bench_samples(received_at,sample,registry_id,device_id) VALUES(?,?,?,?)",
                      (stamp, sample.model_dump_json(), registry_id, device_id))
+        if registry_id is not None and temperature_limit is not None:
+            check_temperature(conn, registry_id, stamp, temperature_limit)
     return stamp
 
 

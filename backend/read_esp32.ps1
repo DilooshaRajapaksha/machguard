@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Port, [ValidatePattern("^[A-Za-z0-9_-]{1,64}$")][string]$DeviceId)
+param([Parameter(Mandatory)][string]$Port, [ValidatePattern("^[A-Za-z0-9_-]{1,64}$")][string]$DeviceId, [ValidateRange(-55,125)][double]$TemperatureLimit)
 $ErrorActionPreference = "Stop"
 $serial = [System.IO.Ports.SerialPort]::new($Port, 115200)
 $serial.ReadTimeout = 1000
@@ -9,6 +9,10 @@ try {
     $start.FileName = "$PSScriptRoot\venv\Scripts\python.exe"
     $start.WorkingDirectory = $PSScriptRoot
     $start.Arguments = "-u read_esp32.py $DeviceId"
+    if ($PSBoundParameters.ContainsKey("TemperatureLimit")) {
+        $limit = $TemperatureLimit.ToString([cultureinfo]::InvariantCulture)
+        $start.Arguments += " --temperature-limit $limit"
+    }
     $start.UseShellExecute = $false
     $start.RedirectStandardInput = $true
     $reader = [System.Diagnostics.Process]::Start($start)

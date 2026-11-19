@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 from pydantic import ValidationError
@@ -53,6 +54,12 @@ def samples(lines):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("device", nargs="?")
+    parser.add_argument("--temperature-limit", type=float)
+    args = parser.parse_args()
+    if args.temperature_limit is not None and (not args.device or not -55 <= args.temperature_limit <= 125):
+        parser.error("Select a registered device and a probe limit between -55 and 125 C.")
     init_bench()
     for sample in samples(sys.stdin):
-        print(save_sample(sample, sys.argv[1] if len(sys.argv) > 1 else None), sample.model_dump_json(exclude_none=True), flush=True)
+        print(save_sample(sample, args.device, args.temperature_limit), sample.model_dump_json(exclude_none=True), flush=True)
