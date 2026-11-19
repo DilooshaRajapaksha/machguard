@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from . import db, security
+from . import db, security, forecast
 from .notification_schemas import MachineWarningOut
 from .notification_service import record_warning
 
@@ -36,6 +36,7 @@ class BenchSample(BaseModel):
 
 def init_bench():
     with db.connect() as conn:
+        conn.executescript(forecast.SCHEMA)
         conn.execute("BEGIN IMMEDIATE")
         conn.execute("CREATE TABLE IF NOT EXISTS bench_samples (id INTEGER PRIMARY KEY, received_at TEXT NOT NULL, sample TEXT NOT NULL)")
         columns = {row["name"] for row in conn.execute("PRAGMA table_info(bench_samples)")}
@@ -82,6 +83,8 @@ def save_sample(sample, device_id=None, temperature_limit=None):
             registry_id = link["machine_id"]
         conn.execute("INSERT INTO bench_samples(received_at,sample,registry_id,device_id) VALUES(?,?,?,?)",
                      (stamp, sample.model_dump_json(), registry_id, device_id))
+        if registry_id is not None:
+            forecast.update(conn, registry_id, stamp, sample.probe_c, temperature_limit)
         if registry_id is not None and temperature_limit is not None:
             check_temperature(conn, registry_id, stamp, temperature_limit)
     return stamp
