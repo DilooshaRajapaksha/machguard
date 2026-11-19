@@ -84,11 +84,10 @@ class ChatTests(unittest.TestCase):
 
     def test_context_and_warning_regression(self):
         readings = simulator.generate(simulator.Scenario.HEALTHY, steps=30)
-        for reading in readings:
-            db.save_reading(reading)
+        chat_service.demo_store.save(readings)
         context = chat_service.machine_context(readings[0].machine_id)
-        self.assertEqual(context['source'], 'unknown')
-        self.assertIn(context['warning']['status'], ('not_enough_data', 'stale'))
+        self.assertEqual(context['source'], 'simulated')
+        self.assertEqual(context['warning']['source'], 'simulated')
         self.assertEqual(chat_service.machine_context('absent')['warning']['status'], 'no_data')
         faulty = simulator.generate(simulator.Scenario.SLOW_OVERHEATING, steps=120)
         warning = build_warning(faulty[0].machine_id, faulty, source='simulated')

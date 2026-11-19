@@ -7,8 +7,7 @@ from pathlib import Path
 import httpx
 from fastapi import HTTPException
 
-from . import db
-from .schemas import Reading
+from . import db, demo_store
 from .warning_service import build_warning
 
 
@@ -64,14 +63,13 @@ def init_chat():
 def machine_context(machine_id):
     if not machine_id:
         return {"machine_id": None, "message": "No machine selected."}
-    rows = db.latest_readings(machine_id, 30)
-    readings = [Reading(**row) for row in reversed(rows)]
+    readings = demo_store.latest(machine_id, 30)
     try:
-        warning = build_warning(machine_id, readings, source="unknown").model_dump(mode="json")
+        warning = build_warning(machine_id, readings, source="simulated").model_dump(mode="json")
     except ValueError:
         warning = {"status": "not_enough_data", "message": "Reading timestamps are inconsistent."}
     latest = readings[-1].model_dump(mode="json") if readings else None
-    return {"machine_id": machine_id, "source": "unknown", "warning": warning,
+    return {"machine_id": machine_id, "source": "simulated", "warning": warning,
             "latest_reading": latest, "model_basis": "Synthetic healthy compressor data",
             "missing": ["Measured energy in kWh", "Useful production output", "Applicable emission factor"]}
 
