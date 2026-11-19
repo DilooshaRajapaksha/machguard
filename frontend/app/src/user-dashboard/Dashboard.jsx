@@ -5,6 +5,7 @@ import { categories, countByStatus, machines } from '../data/machines'
 import { useAuth } from '../context/AuthContext'
 import { companyName } from '../config'
 import { useState } from 'react'
+import MachineAlerts from '../components/MachineAlerts'
 import MyAssigns from '../components/MyAssigns'
 
 function getGreeting() {
@@ -70,6 +71,7 @@ function Dashboard() {
         </div>
       )}
 
+      {isEngineerView && <MachineAlerts />}
       {showAssignments ? (
         <MyAssigns />
       ) : (

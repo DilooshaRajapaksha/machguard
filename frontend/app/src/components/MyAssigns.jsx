@@ -1,3 +1,4 @@
+import BenchReadings from './BenchReadings'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { apiRequest } from '../services/api'
@@ -51,6 +52,7 @@ export default function MyAssigns() {
           <h2 className="mt-1 text-lg font-semibold">{machine.name}</h2>
           <p className="mt-2 text-sm">{machine.category_name} · {machine.location}</p>
           <p className="mt-1 text-sm">Recorded status: {machine.status}</p>
+        <BenchReadings machineId={machine.machine_id} />
         </article>
       ))}
     </section>

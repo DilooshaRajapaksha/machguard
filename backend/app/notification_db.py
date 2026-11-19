@@ -50,6 +50,15 @@ LEFT JOIN notification_reads r
 """
 
 
+VISIBLE = """
+(EXISTS (SELECT 1 FROM users WHERE id=? AND role='admin')
+ OR EXISTS (
+    SELECT 1 FROM machines m JOIN engineer_accounts a ON a.engineer_id=m.engineer_id
+    WHERE m.machine_id=n.machine_id AND a.user_id=?
+ ))
+"""
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -126,8 +135,8 @@ def get_notification(
 ) -> Optional[dict]:
     with db.connect() as conn:
         row = conn.execute(
-            SELECT_NOTIFICATIONS + " WHERE n.id = ?",
-            (user_id, notification_id),
+            SELECT_NOTIFICATIONS + " WHERE n.id = ? AND " + VISIBLE,
+            (user_id, notification_id, user_id, user_id),
         ).fetchone()
 
         return notification_from_row(row)
@@ -146,8 +155,8 @@ def list_notifications(
     if offset < 0:
         raise ValueError("Offset cannot be negative.")
 
-    conditions = []
-    parameters = [user_id]
+    conditions = [VISIBLE]
+    parameters = [user_id, user_id, user_id]
 
     if machine_id is not None:
         conditions.append("n.machine_id = ?")
@@ -215,8 +224,8 @@ def mark_as_read(notification_id: int, user_id: int) -> bool:
         conn.execute("BEGIN IMMEDIATE")
 
         exists = conn.execute(
-            "SELECT id FROM notifications WHERE id = ?",
-            (notification_id,),
+            "SELECT n.id FROM notifications n WHERE n.id = ? AND " + VISIBLE,
+            (notification_id, user_id, user_id),
         ).fetchone()
 
         if exists is None:

@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 import hashlib
 import json
 from datetime import timezone
@@ -64,6 +65,7 @@ def warning_signature(warning: MachineWarningOut) -> str:
 def record_warning(
     warning: MachineWarningOut,
     stream_id: str = "default",
+    connection=None,
 ) -> Optional[int]:
     if not stream_id.strip():
         raise ValueError("A stream ID is required.")
@@ -87,8 +89,9 @@ def record_warning(
     notification_id = None
     created_at = notification_db.utc_now()
 
-    with db.connect() as conn:
-        conn.execute("BEGIN IMMEDIATE")
+    with (nullcontext(connection) if connection is not None else db.connect()) as conn:
+        if connection is None:
+            conn.execute("BEGIN IMMEDIATE")
 
         previous = conn.execute(
             """

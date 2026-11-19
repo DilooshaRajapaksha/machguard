@@ -63,7 +63,7 @@ def _trend(values: List[float], minutes: List[float]):
     resid = float(np.sum((y - fitted) ** 2))
     dof = len(x) - 2
     stderr = float(np.sqrt(resid / dof / np.sum((x - x.mean()) ** 2))) if dof > 0 else 0.0
-    strength = abs(slope) / stderr if stderr > 1e-9 else 0.0
+    strength = abs(slope) / max(stderr, 1e-9)
     return float(slope), float(strength)
 
 
