@@ -4,6 +4,8 @@ import CategoryCard from '../components/machines/CategoryCard'
 import { categories, countByStatus, machines } from '../data/machines'
 import { useAuth } from '../context/AuthContext'
 import { companyName } from '../config'
+import { useState } from 'react'
+import MyAssigns from '../components/MyAssigns'
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -14,9 +16,13 @@ function getGreeting() {
 
 function Dashboard() {
   const { user } = useAuth()
+  const [selectedView, setSelectedView] = useState('assigned')
+  const isEngineerView = user?.role === 'viewer'
+  const showAssignments = isEngineerView && selectedView === 'assigned'
   const displayName = user?.full_name?.trim() || user?.username || 'User'
   const firstName = displayName.split(/\s+/)[0]
   const counts = countByStatus(machines)
+  
 
   const stats = [
     { label: 'Total machines', value: machines.length, icon: Activity, color: 'bg-slate-100 text-navy-700' },
@@ -34,12 +40,41 @@ function Dashboard() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Maintenance overview</h1>
           <p className="mt-3 max-w-2xl text-sm text-slate-500">
-            {companyName} · Demonstration machine directory. Counts below are sample statuses, not live readings.
+                        {showAssignments
+              ? 'Machines assigned to you by your administrator.'
+              : `${companyName} · Demonstration directory. Fleet counts are sample statuses.`}
           </p>
         </div>
       </section>
 
-      <BenchReadings />
+            {isEngineerView && (
+        <div className="flex gap-2" role="group" aria-label="Machine view">
+          {[
+            ['assigned', 'My Assigns'],
+            ['all', 'All machines'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={selectedView === value}
+              onClick={() => setSelectedView(value)}
+              className={
+                selectedView === value
+                  ? 'rounded-md bg-slate-900 px-4 py-2 text-white'
+                  : 'rounded-md border border-slate-300 px-4 py-2 text-slate-700'
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {showAssignments ? (
+        <MyAssigns />
+      ) : (
+        <>
+          <BenchReadings />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, color }) => (
@@ -64,6 +99,8 @@ function Dashboard() {
           ))}
         </div>
       </section>
+          </>
+      )}
     </div>
   )
 }

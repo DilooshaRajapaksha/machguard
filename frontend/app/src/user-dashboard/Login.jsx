@@ -18,6 +18,7 @@ function getDestination(value) {
 
 export default function Login() {
   const {
+    user,
     isAuthenticated,
     mustChangePassword,
     loading,
@@ -39,7 +40,7 @@ export default function Login() {
   const changingPassword = isAuthenticated && mustChangePassword
 
   if (isAuthenticated && !mustChangePassword) {
-    return <Navigate to={destination} replace />
+    return <Navigate to={destination === '/' && user?.role === 'admin' ? '/admin' : destination} replace />
   }
 
   async function handleLogin(event) {

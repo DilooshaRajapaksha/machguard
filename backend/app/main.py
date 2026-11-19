@@ -1,6 +1,4 @@
-from pathlib import Path
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from . import registry_routes
 from . import notification_routes
 from . import chat_routes
@@ -124,11 +122,8 @@ def reset_diary():
     return {"cleared": True}
 
 app.include_router(registry_routes.router)
-
-ADMIN_FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend" / "admin-dashbord"
-app.mount("/panel-static", StaticFiles(directory=str(ADMIN_FRONTEND_DIR)), name="panel-static")
-
+app.include_router(registry_routes.engineer_router)
 
 @app.get("/panel", include_in_schema=False)
 def admin_panel():
-    return FileResponse(ADMIN_FRONTEND_DIR / "index.html")
+    return RedirectResponse("http://localhost:5173/admin")

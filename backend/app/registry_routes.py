@@ -15,12 +15,19 @@ CREATE TABLE IF NOT EXISTS machine_categories (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  name TEXT NOT NULL UNIQUE COLLATE NOCASE
 );
+
 CREATE TABLE IF NOT EXISTS engineers (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  name TEXT NOT NULL,
  email TEXT NOT NULL UNIQUE COLLATE NOCASE,
  specialty TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS engineer_accounts (
+    engineer_id INTEGER PRIMARY KEY REFERENCES engineers(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS machines (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  machine_id TEXT NOT NULL UNIQUE COLLATE NOCASE,
@@ -32,6 +39,7 @@ CREATE TABLE IF NOT EXISTS machines (
  status TEXT NOT NULL CHECK(status IN ('Working','Maintenance','Stopped')),
  engineer_id INTEGER REFERENCES engineers(id)
 );
+
 CREATE TABLE IF NOT EXISTS maintenance_reports (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  machine_id INTEGER NOT NULL REFERENCES machines(id),
@@ -98,7 +106,13 @@ def registry():
     with db.connect() as conn:
         return {
             "categories": [dict(r) for r in conn.execute("SELECT * FROM machine_categories ORDER BY name")],
-            "engineers": [dict(r) for r in conn.execute("SELECT * FROM engineers ORDER BY name")],
+                        "engineers": [dict(r) for r in conn.execute("""
+                SELECT e.*, a.user_id, u.username AS login_username
+                FROM engineers e
+                LEFT JOIN engineer_accounts a ON a.engineer_id = e.id
+                LEFT JOIN users u ON u.id = a.user_id
+                ORDER BY e.name
+            """)],
             "machines": [dict(r) for r in conn.execute("""
                 SELECT m.*, c.name AS category_name, e.name AS engineer_name
                 FROM machines m JOIN machine_categories c ON c.id=m.category_id
@@ -171,3 +185,81 @@ def add_report(body: ReportIn, admin: dict = Depends(security.require_admin)):
         require_reference(conn, "machines", body.machine_id, "Machine")
         new_id = insert(conn, "maintenance_reports", values)
     return {"id": new_id, **values}
+
+class EngineerAccountIn(Form):
+    user_id: int = Field(gt=0)
+
+
+@router.put("/engineers/{engineer_id}/account")
+def link_engineer_account(engineer_id: int, body: EngineerAccountIn):
+    with db.connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        require_reference(conn, "engineers", engineer_id, "Engineer")
+
+        account = conn.execute(
+            "SELECT id, role, is_active FROM users WHERE id = ?",
+            (body.user_id,),
+        ).fetchone()
+
+        if account is None:
+            raise HTTPException(404, "Login account does not exist.")
+
+        if account["role"] != "viewer" or not account["is_active"]:
+            raise HTTPException(400, "Choose an active viewer account for this engineer.")
+
+        links = conn.execute(
+            """
+            SELECT engineer_id, user_id
+            FROM engineer_accounts
+            WHERE engineer_id = ? OR user_id = ?
+            """,
+            (engineer_id, body.user_id),
+        ).fetchall()
+
+        for link in links:
+            if link["engineer_id"] != engineer_id or link["user_id"] != body.user_id:
+                raise HTTPException(409, "This engineer or login already has another link.")
+
+        if not links:
+            conn.execute(
+                "INSERT INTO engineer_accounts (engineer_id, user_id) VALUES (?, ?)",
+                (engineer_id, body.user_id),
+            )
+
+    return {"engineer_id": engineer_id, "user_id": body.user_id}
+
+engineer_router = APIRouter(prefix="/engineer", tags=["engineer"])
+
+
+@engineer_router.get("/me")
+def my_engineer_profile(user: dict = Depends(security.current_user)):
+    with db.connect() as conn:
+        engineer = conn.execute(
+            """
+            SELECT e.id, e.name, e.email, e.specialty
+            FROM engineer_accounts a
+            JOIN engineers e ON e.id = a.engineer_id
+            WHERE a.user_id = ?
+            """,
+            (user["id"],),
+        ).fetchone()
+
+        if engineer is None:
+            raise HTTPException(403, "Ask your administrator to link your engineer profile.")
+
+        machines = conn.execute(
+            """
+            SELECT m.machine_id, m.name, m.model, m.serial_number,
+                   m.location, m.status, c.name AS category_name
+            FROM machines m
+            JOIN machine_categories c ON c.id = m.category_id
+            WHERE m.engineer_id = ?
+            ORDER BY m.name, m.machine_id
+            """,
+            (engineer["id"],),
+        ).fetchall()
+
+    return {
+        "engineer": dict(engineer),
+        "machines": [dict(machine) for machine in machines],
+    }
