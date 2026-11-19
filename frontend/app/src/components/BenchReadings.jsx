@@ -13,7 +13,7 @@ const fields = [
   ['ax', 'Acceleration X', 'm/s²'], ['ay', 'Acceleration Y', 'm/s²'], ['az', 'Acceleration Z', 'm/s²'],
 ]
 
-export default function BenchReadings({ machineId = '' }) {
+export default function BenchReadings({ machineId = '', showHistory = true }) {
   const { token, user } = useAuth()
   const query = machineId ? '?machine_id=' + encodeURIComponent(machineId) : ''
   const [sample, setSample] = useState(null)
@@ -39,7 +39,7 @@ export default function BenchReadings({ machineId = '' }) {
   }, [token, query])
   return <section className="rounded-md border border-slate-200 bg-white p-5">
     <h2 className="text-xl font-semibold">ESP32 test bench</h2>
-    {(machineId || user.role === "admin") && <Link className="text-sm text-teal-700 underline" to={'/machines/test-bench/motor-1' + query}>View five-minute history</Link>}
+    {showHistory && (machineId || user.role === "admin") && <Link className="text-sm text-teal-700 underline" to={'/machines/test-bench/motor-1' + query}>View five-minute history</Link>}
     <p className="text-sm text-slate-600">{status}</p>
     {sample && <><p className="mt-2 text-sm">Received {new Date(sample.received_at).toLocaleString()}</p>
       <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">{fields.filter(([key]) => sample.uptime_s == null || !['ax', 'ay', 'az'].includes(key)).map(([key, label, unit]) =>
