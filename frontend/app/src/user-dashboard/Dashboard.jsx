@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { companyName } from '../config'
 import { useState } from 'react'
 import MachineAlerts from '../components/MachineAlerts'
+import { EquipmentDirectory } from './Equipment'
 import MyAssigns from '../components/MyAssigns'
 
 function getGreeting() {
@@ -76,6 +77,7 @@ function Dashboard() {
         <MyAssigns />
       ) : (
         <>
+          <EquipmentDirectory />
           <BenchReadings />
 
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">

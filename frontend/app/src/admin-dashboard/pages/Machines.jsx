@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import RecordForm, { Field } from '../components/RecordForm'
 
 export default function Machines() {
@@ -24,6 +24,6 @@ export default function Machines() {
       <Field label="Machine" name="machine" choices={machines} />
       <Field label="Device label" name="device_id" pattern="[A-Za-z0-9_\-]{1,64}" />
     </RecordForm>}
-    <section><h2>Registered machines</h2>{machines.map(m => <p key={m.id}>{m.name} · {m.machine_id} · {m.category_name} · {m.location} · {m.status} · {m.device_id || 'No device'} · {m.engineer_name || 'Unassigned'} <button onClick={() => setEditing(m)}>Edit</button></p>)}{!machines.length && <p>No machines registered.</p>}</section>
+    <section><h2>Registered machines</h2>{machines.map(m => <p key={m.id}><Link to={'/equipment/'+encodeURIComponent(m.machine_id)}>{m.name}</Link> · {m.machine_id} · {m.category_name} · {m.location} · {m.status} · {m.device_id || 'No device'} · {m.engineer_name || 'Unassigned'} <button onClick={() => setEditing(m)}>Edit</button></p>)}{!machines.length && <p>No machines registered.</p>}</section>
   </>
 }

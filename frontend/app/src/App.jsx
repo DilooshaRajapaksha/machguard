@@ -11,6 +11,7 @@ import Support from './user-dashboard/Support'
 import Assistant from './user-dashboard/Assistant'
 import NotFound from './user-dashboard/NotFound'
 
+import Equipment from './user-dashboard/Equipment'
 import AdminLayout from './admin-dashboard/AdminLayout'
 import AdminHome from './admin-dashboard/pages/Home'
 import AdminMachines from './admin-dashboard/pages/Machines'
@@ -33,6 +34,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
 
+            <Route path="/equipment/:code" element={<Equipment />} />
             <Route path="/machines" element={<Machines />} />
             <Route path="/machines/test-bench/motor-1" element={<BenchHistory />} />
 
