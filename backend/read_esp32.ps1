@@ -1,4 +1,4 @@
-param([Parameter(Mandatory)][string]$Port, [ValidatePattern("^[A-Za-z0-9_-]{1,64}$")][string]$DeviceId, [ValidateRange(-55,125)][double]$TemperatureLimit)
+param([Parameter(Mandatory)][string]$Port, [switch]$ShowRaw, [ValidatePattern("^[A-Za-z0-9_-]{1,64}$")][string]$DeviceId, [ValidateRange(-55,125)][double]$TemperatureLimit)
 $ErrorActionPreference = "Stop"
 $serial = [System.IO.Ports.SerialPort]::new($Port, 115200)
 $serial.ReadTimeout = 1000
@@ -18,10 +18,19 @@ try {
     $reader = [System.Diagnostics.Process]::Start($start)
     $reader.StandardInput.AutoFlush = $true
     Write-Host "Reading $Port. Press Ctrl+C to stop."
+    $lastNotice = [datetime]::UtcNow
     while ($serial.IsOpen) {
         if ($reader.HasExited) { throw "USB reader exited with code $($reader.ExitCode)." }
         try { $line = $serial.ReadLine() }
-        catch [TimeoutException] { continue }
+        catch [TimeoutException] {
+            if (([datetime]::UtcNow - $lastNotice).TotalSeconds -ge 10) {
+                Write-Host "No complete serial line received from $Port at 115200 baud."
+                $lastNotice = [datetime]::UtcNow
+            }
+            continue
+        }
+        $lastNotice = [datetime]::UtcNow
+        if ($ShowRaw) { Write-Host "USB> $line" }
         $reader.StandardInput.WriteLine($line)
     }
 } finally {

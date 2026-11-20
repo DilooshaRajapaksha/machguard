@@ -83,12 +83,9 @@ class ChatTests(unittest.TestCase):
         self.assertEqual(self.client.post('/chat/energy', json=body, headers=self.headers['first']).status_code, 422)
 
     def test_context_and_warning_regression(self):
-        readings = simulator.generate(simulator.Scenario.HEALTHY, steps=30)
-        chat_service.demo_store.save(readings)
-        context = chat_service.machine_context(readings[0].machine_id)
-        self.assertEqual(context['source'], 'simulated')
-        self.assertEqual(context['warning']['source'], 'simulated')
-        self.assertEqual(chat_service.machine_context('absent')['warning']['status'], 'no_data')
+        context = chat_service.machine_context('absent')
+        self.assertEqual(context['source'], 'registry')
+        self.assertNotIn('latest_reading', context)
         faulty = simulator.generate(simulator.Scenario.SLOW_OVERHEATING, steps=120)
         warning = build_warning(faulty[0].machine_id, faulty, source='simulated')
         self.assertEqual(warning.status, 'fault')

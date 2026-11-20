@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { apiRequest } from '../services/api'
 
 export default function BenchHistory() {
-  const [params] = useSearchParams()
-  const machineId = params.get('machine_id')
+  const { code: machineId } = useParams()
   const query = machineId ? '?machine_id=' + encodeURIComponent(machineId) : ''
   const { token } = useAuth()
   const [rows, setRows] = useState(null)
@@ -31,12 +30,12 @@ export default function BenchHistory() {
   }, [token, query])
 
   return <section className="mx-auto max-w-5xl space-y-4 p-5">
-    <Link to="/" className="text-teal-700 underline">Dashboard</Link>
-    <h1 className="text-2xl font-semibold">{machineId || 'ESP32 Test Motor 1'}</h1>
-    <p>USB readings from the last five minutes, newest first.</p>
+    <Link to={"/equipment/" + encodeURIComponent(machineId)} className="text-teal-700 underline">Machine record</Link>
+    <h1 className="text-2xl font-semibold">{machineId}</h1>
+    <p>ESP32 readings from the last five minutes, newest first.</p>
     {error && <p role="alert">{error}</p>}
     {!error && !rows && <p>Loading history…</p>}
-    {!error && rows?.length === 0 && <p>No USB readings in the last five minutes.</p>}
+    {!error && rows?.length === 0 && <p>No ESP32 readings in the last five minutes.</p>}
     {!error && !!rows?.length && <div className="overflow-auto rounded border bg-white"><table className="w-full text-left text-sm">
       <thead><tr>{['Time', 'Probe 1 (°C)', 'Probe 2 (°C)', 'Vibration RMS (m/s²)'].map(label =>
         <th key={label} className="p-3">{label}</th>)}</tr></thead>
