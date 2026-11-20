@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom'
-import BenchReadings from './BenchReadings'
+import MachineTile from './MachineTile'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { apiRequest } from '../services/api'
@@ -43,20 +42,11 @@ export default function MyAssigns() {
   }
 
   return (
-    <section aria-label="My assigned machines" className="grid gap-4 md:grid-cols-2">
-      {machines.map(machine => (
-        <article
-          key={machine.machine_id}
-          className="rounded-md border border-slate-200 bg-white p-5"
-        >
-          <p className="text-sm text-slate-500">{machine.machine_id}</p>
-          <h2 className="mt-1 text-lg font-semibold">{machine.name}</h2>
-          <p className="mt-2 text-sm">{machine.category_name} · {machine.location}</p>
-          <p className="mt-1 text-sm">Recorded status: {machine.status}</p>
-         <Link className="underline" to={'/equipment/'+encodeURIComponent(machine.machine_id)}>Open machine record</Link>
-          <BenchReadings machineId={machine.machine_id} />
-        </article>
-      ))}
+    <section className="space-y-5">
+      <h1 className="text-3xl font-semibold">My Assigns</h1>
+      <div className="grid gap-3 md:grid-cols-2">
+        {machines.map(machine => <MachineTile key={machine.machine_id} machine={machine} />)}
+      </div>
     </section>
   )
 }

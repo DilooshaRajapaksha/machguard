@@ -22,6 +22,31 @@ LABELS = {
 }
 
 
+def usb_lines(lines):
+    """Hold a text report until the firmware announces its Wi-Fi result."""
+    report = []
+    for raw in lines:
+        line = raw.strip()
+        if line.startswith("Wi-Fi upload HTTP 201"):
+            report.clear()
+        elif line == "--- MachGuard readings ---":
+            yield from report
+            report = [raw]
+        elif line.startswith("{"):
+            yield from report
+            report = []
+            yield raw
+        elif report:
+            if line.startswith(("Wi-Fi disconnected", "Wi-Fi upload HTTP ")):
+                yield from report
+                report = []
+            elif len(report) < 100:
+                report.append(raw)
+            else:
+                report = []
+    yield from report
+
+
 def samples(lines):
     block = None
     for raw in lines:
@@ -61,5 +86,5 @@ if __name__ == "__main__":
     if args.temperature_limit is not None and (not args.device or not -55 <= args.temperature_limit <= 125):
         parser.error("Select a registered device and a probe limit between -55 and 125 C.")
     init_bench()
-    for sample in samples(sys.stdin):
+    for sample in samples(usb_lines(sys.stdin)):
         print(save_sample(sample, args.device, args.temperature_limit), sample.model_dump_json(exclude_none=True), flush=True)

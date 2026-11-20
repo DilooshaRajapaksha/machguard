@@ -65,7 +65,13 @@ def audit(conn, machine, label, user):
 @router.get("")
 def directory():
     with db.connect() as conn:
-        return [dict(r) for r in conn.execute("SELECT machine_id,name,status FROM machines ORDER BY name")]
+        return [dict(r) for r in conn.execute("""SELECT m.machine_id,m.name,m.status,c.id AS category_id,c.name AS category_name,
+            CASE WHEN n.reading_time >= strftime('%s','now') - 15 THEN
+                CASE n.status WHEN 'normal' THEN 'Healthy' WHEN 'fault' THEN 'Needs attention' ELSE 'Unknown' END
+                ELSE 'Unknown' END AS probe_health
+            FROM machines m JOIN machine_categories c ON c.id=m.category_id
+            LEFT JOIN notification_state n ON n.machine_id=m.machine_id AND n.source='measured'
+            AND n.stream_id='surface-probe-1' ORDER BY c.name,m.name""")]
 
 
 @router.get("/{code}")
@@ -79,6 +85,12 @@ def detail(code: str, user=Depends(security.current_user)):
         notes = conn.execute("SELECT description,probe_location,operating_load,approved_range FROM equipment_notes WHERE machine=?",key).fetchone()
         pred = conn.execute("SELECT issued,due,limit_c,projected_c,predicted,actual,result FROM motor_forecasts WHERE registry_id=? ORDER BY id DESC LIMIT 1",key).fetchone()
         result = dict(machine=machine, can_edit=allowed, notes=dict(notes) if notes else {}, forecast=dict(pred) if pred else None)
+        health = conn.execute("""
+            SELECT status FROM notification_state WHERE machine_id=? AND source='measured'
+            AND stream_id='surface-probe-1' AND reading_time >= strftime('%s','now') - 15
+        """, (machine["machine_id"],)).fetchone()
+        result["probe_health"] = {"normal": "Healthy", "fault": "Needs attention"}.get(
+            health["status"] if health else None, "Unknown")
         if allowed:
             result["services"] = [dict(r) for r in conn.execute("SELECT * FROM service_entries WHERE machine=? ORDER BY serviced DESC,id DESC",key)]
             result["reports"] = [dict(r) for r in conn.execute("SELECT title,notes,created_at,created_by FROM maintenance_reports WHERE machine_id=? ORDER BY id DESC",key)]

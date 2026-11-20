@@ -20,7 +20,7 @@ export default function Machines() {
       <Field name="engineer_id" label="Assigned engineer (optional)" choices={engineers} required={false} defaultValue={current.engineer_id || ''} />
       {editing && <button type="button" onClick={() => setEditing(null)}>Cancel edit</button>}
     </RecordForm>
-    {machines.length > 0 && <RecordForm title="Assign USB device" save={body => request('/admin/registry/machines/' + body.machine + '/device', {method:'PUT', body:{device_id:body.device_id}})}>
+    {machines.length > 0 && <RecordForm title="Assign ESP32 device" save={body => request('/admin/registry/machines/' + body.machine + '/device', {method:'PUT', body:{device_id:body.device_id}})}>
       <Field label="Machine" name="machine" choices={machines} />
       <Field label="Device label" name="device_id" pattern="[A-Za-z0-9_\-]{1,64}" />
     </RecordForm>}

@@ -1,0 +1,85 @@
+.harbor-shell {
+  --glass: linear-gradient(125deg, rgb(248 255 255 / 94%), rgb(218 239 246 / 86%));
+  --edge: 1px solid rgb(255 255 255 / 62%);
+  background: radial-gradient(ellipse at 16% 0%, #3299a3, transparent 52%),
+    radial-gradient(ellipse at 100% 100%, #41a7ab, transparent 60%), #173957;
+  background-attachment: fixed;
+}
+
+.harbor-shell .harbor-sidebar {
+  background: linear-gradient(155deg, #105566eb, #10283ff5 78%);
+  border-color: #ffffff36;
+}
+
+.harbor-sidebar :is(.dockyard-word, .harbor-switch, .dock-signout),
+.harbor-sidebar .harbor-nav a { color: #e0f5fa; }
+.harbor-sidebar .harbor-nav a:hover { background: #ffffff19; }
+.harbor-sidebar .harbor-nav a[aria-current] {
+  color: white;
+  background: linear-gradient(105deg, #167f91, #235674);
+  box-shadow: inset 0 0 0 1px #8ce4ed66;
+}
+
+.harbor-shell > main, .harbor-shell > .mg-admin main {
+  align-self: start;
+  margin-block: clamp(8px, 1.6vw, 24px);
+  width: calc(100% - clamp(16px, 3vw, 48px));
+  background: linear-gradient(130deg, #dcf2f3e8, #cfdeefdf 60%, #c7e7e5ea);
+  border: var(--edge);
+  border-radius: 22px;
+  box-shadow: 0 18px 54px #071d3138;
+}
+
+.harbor-shell :is(.fleet-graphs article, .dashboard-alerts, .sensor-chart, .mg-admin .metrics a),
+.harbor-shell .mg-admin :is(section, form) {
+  background: var(--glass);
+  border: var(--edge);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px #17405212;
+}
+
+.harbor-shell .fleet-share {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  font-weight: 700;
+  background: radial-gradient(closest-side, #edf7fa 78%, transparent 80%),
+    conic-gradient(var(--segment) var(--share), #c9dbdf 0);
+}
+
+.harbor-shell .sensor-chart {
+  border-top: 3px solid var(--signal);
+  min-width: 0;
+}
+.harbor-shell .sensor-chart svg {
+  width: 100%;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--signal) 7%, transparent), transparent);
+}
+.harbor-shell .sensor-chart footer { font-variant-numeric: tabular-nums; }
+.harbor-shell .mg-admin .metrics a { border-top: 3px solid #209194; }
+
+.harbor-shell .sensor-chart {
+  padding: clamp(14px, 1.5vw, 22px);
+  background: linear-gradient(145deg, #ffffffeb, color-mix(in srgb, var(--signal) 8%, #ecf6f8));
+}
+.harbor-shell .sensor-chart strong {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.035em;
+}
+.harbor-shell .sensor-chart svg { display: block; border-radius: 8px; }
+.harbor-shell :is(.fleet-graphs article, .mg-admin .metrics a) {
+  background: linear-gradient(145deg, #fffffff2, #d2ecefe0);
+  box-shadow: inset 0 1px #ffffffd9, 0 6px 18px #12395718;
+}
+@media (max-width: 640px) {
+  .harbor-shell > main, .harbor-shell > .mg-admin main {
+    width: calc(100% - 12px);
+    border-radius: 15px;
+    margin-inline: auto;
+  }
+}

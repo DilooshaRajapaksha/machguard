@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager, suppress
+from . import support, notification_db
 from fastapi.responses import RedirectResponse
 from . import registry_routes
 from . import notification_routes
@@ -14,7 +17,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import admin_routes, ai, auth_routes, codes, db, simulator
 from .schemas import FaultCard, Reading
 
+async def expire_notifications():
+    while True:
+        await asyncio.to_thread(notification_db.purge_expired)
+        await asyncio.sleep(60)
+
+
+@asynccontextmanager
+async def lifespan(app):
+    worker = asyncio.create_task(expire_notifications())
+    try:
+        yield
+    finally:
+        worker.cancel()
+        with suppress(asyncio.CancelledError):
+            await worker
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="MachGuard API",
     description="Fault guidance and early warning for Kaeser Sigma Control 2 compressors",
     version="0.5.0",
@@ -26,6 +47,8 @@ init_notification_service()
 init_chat()
 bench.init_bench()
 registry_routes.init_registry()
+support.init()
+app.include_router(support.router)
 
 app.add_middleware(
     CORSMiddleware,

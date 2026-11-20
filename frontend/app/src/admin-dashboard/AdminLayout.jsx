@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, Navigate, NavLink, Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { apiRequest } from '../services/api'
+import Navbar from '../components/layout/Navbar'
 import './admin.css'
 
 export default function AdminLayout() {
@@ -19,13 +20,17 @@ export default function AdminLayout() {
   }, [request])
 
   useEffect(() => { if (user.role === 'admin') refresh() }, [refresh, user.role])
-  if (user.role !== 'admin') return <Navigate to="/" replace />
-  return <div className="mg-admin">
-    <header><strong>MechGuard Administration</strong><Link to="/">User dashboard</Link><button onClick={signOut}>Sign out</button></header>
-    <main><nav aria-label="Admin pages">{['Home','Machines','Engineers','Reports'].map(page =>
-      <NavLink end key={page} to={page === 'Home' ? '/admin' : '/admin/' + page.toLowerCase()}>{page}</NavLink>
-    )}<button onClick={refresh}>Refresh</button></nav>
+  if (user.role !== 'admin') return <main className="mg-admin">
+    <h1>Admin sign-in required</h1>
+    <p>You are signed in as {user.username}. Switch accounts to open the admin panel.</p>
+    <button type="button" onClick={signOut}>Sign out and use an admin account</button>
+    <p><Link to="/">Return to dashboard</Link></p>
+  </main>
+  return <div className="harbor-shell">
+    <Navbar admin />
+    <div className="mg-admin"><main>
+    <button onClick={refresh}>Refresh</button>
     {error && <p role="alert">{error}</p>}
     {registry ? <Outlet context={{ registry, request, refresh }} /> : !error && <p>Loading registry…</p>}
-    </main></div>
+    </main></div></div>
 }

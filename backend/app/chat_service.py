@@ -63,15 +63,17 @@ def init_chat():
 def machine_context(machine_id):
     if not machine_id:
         return {"machine_id": None, "message": "No machine selected."}
-    readings = demo_store.latest(machine_id, 30)
-    try:
-        warning = build_warning(machine_id, readings, source="simulated").model_dump(mode="json")
-    except ValueError:
-        warning = {"status": "not_enough_data", "message": "Reading timestamps are inconsistent."}
-    latest = readings[-1].model_dump(mode="json") if readings else None
-    return {"machine_id": machine_id, "source": "simulated", "warning": warning,
-            "latest_reading": latest, "model_basis": "Synthetic healthy compressor data",
-            "missing": ["Measured energy in kWh", "Useful production output", "Applicable emission factor"]}
+    with db.connect() as conn:
+        row = conn.execute("""
+            SELECT m.name, m.model, b.received_at, b.sample FROM machines m
+            LEFT JOIN bench_samples b ON b.registry_id=m.id WHERE m.machine_id=?
+            ORDER BY b.id DESC LIMIT 1
+        """, (machine_id,)).fetchone()
+    if row is None:
+        return {"machine_id": machine_id, "source": "registry", "message": "Machine is absent from the registry."}
+    return {"machine_id": machine_id, "name": row["name"], "model": row["model"],
+            "source": "ESP32", "received_at": row["received_at"],
+            "latest_reading": json.loads(row["sample"]) if row["sample"] else None}
 
 
 async def generate_reply(history, context, config):

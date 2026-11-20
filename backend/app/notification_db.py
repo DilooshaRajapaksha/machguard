@@ -51,12 +51,21 @@ LEFT JOIN notification_reads r
 
 
 VISIBLE = """
+julianday(n.created_at) > julianday('now', '-1 day') AND
 (EXISTS (SELECT 1 FROM users WHERE id=? AND role='admin')
  OR EXISTS (
     SELECT 1 FROM machines m JOIN engineer_accounts a ON a.engineer_id=m.engineer_id
     WHERE m.machine_id=n.machine_id AND a.user_id=?
  ))
 """
+
+
+def purge_expired():
+    with db.connect() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        expired = "SELECT id FROM notifications WHERE julianday(created_at) <= julianday('now','-1 day')"
+        conn.execute("DELETE FROM notification_reads WHERE notification_id IN (" + expired + ")")
+        conn.execute("DELETE FROM notifications WHERE id IN (" + expired + ")")
 
 
 def utc_now() -> str:
@@ -259,7 +268,7 @@ def acknowledge_notification(
         conn.execute("BEGIN IMMEDIATE")
 
         exists = conn.execute(
-            "SELECT id FROM notifications WHERE id = ?",
+            "SELECT id FROM notifications WHERE id = ? AND julianday(created_at)>julianday('now','-1 day')",
             (notification_id,),
         ).fetchone()
 

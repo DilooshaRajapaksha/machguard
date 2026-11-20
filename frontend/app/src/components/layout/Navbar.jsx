@@ -1,79 +1,31 @@
-import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import { Anchor, Bot, Cog, LayoutDashboard, LifeBuoy, Menu, X } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { Bell, Bot, Cog, FileText, LayoutDashboard, LifeBuoy, Ship, Users } from 'lucide-react'
 import ProfileMenu from './ProfileMenu'
-import { appName, companyName } from '../../config'
+import WarningPopup from '../WarningPopup'
+import { useAuth } from '../../context/AuthContext'
+import './navigation.css'
 
-const links = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/machines', label: 'Machines', icon: Cog },
-  { to: '/support', label: 'Support', icon: LifeBuoy },
-  { to: '/assistant', label: 'Assistant', icon: Bot },
-]
+const userPages = [['/', 'Dashboard', LayoutDashboard], ['/machines', 'Machines', Cog], ['/my-assigns', 'My Assigns', Users], ['/assistant', 'Assistant', Bot], ['/notifications','Notifications',Bell], ['/support', 'Support', LifeBuoy]]
+const adminPages = [['/admin', 'Home', LayoutDashboard], ['/admin/machines', 'Machines', Cog], ['/admin/engineers', 'Engineers', Users], ['/admin/reports', 'Reports', FileText], ['/admin/notifications','Notifications',Bell], ['/admin/support','Support',LifeBuoy]]
 
-function linkClass({ isActive }) {
-  const base = 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors'
-  return isActive
-    ? `${base} bg-white/10 text-white`
-    : `${base} text-slate-300 hover:bg-white/5 hover:text-white`
+export default function Navbar({ admin = false }) {
+  const { pathname } = useLocation()
+  const { user, signOut } = useAuth()
+  const pages = admin ? adminPages : userPages.filter(([path]) => path !== '/my-assigns' || user.role === 'viewer')
+  const selected = pages.findIndex(([path]) => pathname.replace(/\/$/, '') === path.replace(/\/$/, '') || (path === '/machines' && (pathname.startsWith('/equipment/') || pathname.startsWith('/machines/'))))
+  return <aside className={admin ? "harbor-sidebar" : "harbor-sidebar user-rail"}>
+    <div className="harbor-top">
+      <Link className="harbor-logo" to={admin ? '/admin' : '/'} aria-label="MachGuard home" />
+      <strong className="dockyard-word">DOCKYARD</strong>
+    </div>
+    <nav style={{'--pages': pages.length}} className="harbor-nav" aria-label={admin ? 'Admin pages' : 'User pages'}>
+      {selected >= 0 && <span aria-hidden="true" className="harbor-ship" style={{'--row': selected}}><Ship size={28} /></span>}
+      {pages.map(([path, label, Icon], index) => <Link key={path} to={path} aria-current={selected === index ? 'page' : undefined}>
+        <Icon size={17} />{selected === index && <Ship className="mobile-ship" size={26} aria-hidden="true" />}{label}
+      </Link>)}
+    </nav>
+    {user.role === 'admin' && <Link className="harbor-switch" to={admin ? '/' : '/admin'}>{admin ? 'User dashboard' : 'Admin dashboard'}</Link>}
+    {admin ? <button className="dock-signout" onClick={signOut}>Sign out</button> : <div className="rail-profile"><ProfileMenu /></div>}
+    <WarningPopup admin={admin} />
+  </aside>
 }
-
-function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  return (
-    <header className="sticky top-0 z-30 bg-navy-900 shadow-lg shadow-navy-950/20">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-400 text-navy-950">
-            <Anchor size={20} strokeWidth={2.5} />
-          </span>
-          <span className="leading-tight">
-            <span className="block text-base font-bold text-white">{appName}</span>
-            <span className="block text-xs text-slate-400">{companyName}</span>
-          </span>
-        </Link>
-
-        <nav className="hidden items-center gap-1 md:flex">
-          {links.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} className={linkClass}>
-              <Icon size={16} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-1">
-          <ProfileMenu />
-          <button
-            type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="rounded-lg p-2 text-slate-300 hover:bg-white/10 hover:text-white md:hidden"
-            aria-label="Open menu"
-          >
-            {menuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <nav className="space-y-1 border-t border-white/10 px-4 py-3 md:hidden">
-          {links.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={linkClass}
-              onClick={() => setMenuOpen(false)}
-            >
-              <Icon size={18} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-      )}
-    </header>
-  )
-}
-
-export default Navbar

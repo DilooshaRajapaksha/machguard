@@ -1,3 +1,4 @@
+import PasswordInput from '../components/PasswordInput'
 import { useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -156,7 +157,7 @@ export default function Login() {
               >
                 Current password
               </label>
-              <input
+              <PasswordInput
                 id="current-password"
                 name="current_password"
                 type="password"
@@ -176,7 +177,7 @@ export default function Login() {
               >
                 New password
               </label>
-              <input
+              <PasswordInput
                 id="new-password"
                 name="new_password"
                 type="password"
@@ -197,7 +198,7 @@ export default function Login() {
               >
                 Confirm new password
               </label>
-              <input
+              <PasswordInput
                 id="confirm-password"
                 name="confirm_password"
                 type="password"
@@ -263,7 +264,7 @@ export default function Login() {
               >
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
                 type="password"
